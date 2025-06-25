@@ -23,6 +23,15 @@ namespace AzureFuncBe
         [JsonProperty("_ts")]
         public long Timestamp { get; set; }
     }
+
+    public class CategoryParams
+    {
+        public string CatNameSearch { get; set; } = string.Empty;
+        public int ProdCount { get; set; } = -1;
+
+        public int MinProdCount { get; set; } = 0;
+        public int MaxProdCount { get; set; } = 0;
+    }
     public class Function1
     {
         private readonly ILogger<Function1> _logger;
@@ -55,7 +64,7 @@ namespace AzureFuncBe
         [Function("Login")]
         public IActionResult Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")]
-            HttpRequest req)
+        HttpRequest req)
         {
             if (string.IsNullOrEmpty(req.Headers["Authorization"].FirstOrDefault()))
             {
@@ -86,27 +95,69 @@ namespace AzureFuncBe
             }
         }
 
+        private CategoryParams ConstructCategoryQueryParams(HttpRequest req)
+        {
+            string catNameSuggestion = req.Query["catNameSearch"].ToString();
+            int minProdCount = int.TryParse(req.Query["minProdCount"], out var min) ? min : 0;
+            int maxProdCount = int.TryParse(req.Query["maxProdCount"], out var max) ? max : 0;
+            int prodCount = int.TryParse(req.Query["prodCount"], out var count) ? count : -1;
+            return new CategoryParams
+            {
+                CatNameSearch = catNameSuggestion,
+                MinProdCount = minProdCount,
+                MaxProdCount = maxProdCount,
+                ProdCount = prodCount
+            };
+        }
+
         [Function("GetPartitionedCategory")]
         public async Task<IActionResult> GetPartitionedCategory(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post")]
-            HttpRequest req)
-        { 
-        
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post")]
+        HttpRequest req
+    )
+        {
+            CategoryParams categoryParams = ConstructCategoryQueryParams(req);
+            string catNameSuggestion = categoryParams.CatNameSearch;
+            int minProdCount = categoryParams.MinProdCount;
+            int maxProdCount = categoryParams.MaxProdCount;
+            int prodCount = categoryParams.ProdCount;
             Container container = GetContainer(_categoryContainer);
-            string query = "SELECT * FROM c";
+            string query = "SELECT * FROM Category c WHERE c.catName LIKE @catNameSuggestion";
+
+            if (categoryParams.ProdCount == -1)
+            {
+                if (minProdCount == maxProdCount && minProdCount == 0)
+                {
+                    query += " AND c.count >= @minProdCount";
+                }
+                else
+                {
+                    query += " AND c.count >= @minProdCount AND c.count <= @maxProdCount";
+                }
+            }
+
+            else if (categoryParams.ProdCount != -1)
+            {
+                query += " AND c.count = @prodCount";
+            }
             var queryDefinition = new QueryDefinition(query);
+            queryDefinition
+                .WithParameter("@catNameSuggestion", $"%{catNameSuggestion}%")
+                .WithParameter("@maxProdCount", maxProdCount)
+                .WithParameter("@minProdCount", minProdCount)
+                .WithParameter("@prodCount", prodCount);
             string continuationToken = null;
             List<Category> categories = new List<Category>();
             QueryRequestOptions queryRequest = new QueryRequestOptions
             {
                 MaxItemCount = 10
             };
-            FeedIterator<Category> feedIterator = container.GetItemQueryIterator<Category>(queryDefinition, continuationToken, queryRequest); 
+            FeedIterator<Category> feedIterator = container.GetItemQueryIterator<Category>(queryDefinition, continuationToken, queryRequest);
             FeedResponse<Category> feedResponse = await feedIterator.ReadNextAsync();
-            categories.AddRange(feedResponse);  
+            categories.AddRange(feedResponse);
 
             return new OkObjectResult(new
-            { 
+            {
                 categories,
                 continuationToken
             });
