@@ -6,7 +6,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
-using System.Net;
 
 namespace AzureFuncBe
 {
@@ -95,7 +94,7 @@ namespace AzureFuncBe
             }
         }
 
-        private CategoryParams ConstructCategoryQueryParams(HttpRequest req)
+        private CategoryParams ConstructGetCategoriesQueryParams(HttpRequest req)
         {
             string catNameSuggestion = req.Query["catNameSearch"].ToString();
             int minProdCount = int.TryParse(req.Query["minProdCount"], out var min) ? min : 0;
@@ -110,13 +109,13 @@ namespace AzureFuncBe
             };
         }
 
-        [Function("GetPartitionedCategory")]
-        public async Task<IActionResult> GetPartitionedCategory(
-        [HttpTrigger(AuthorizationLevel.Function, "get", "post")]
-        HttpRequest req
-    )
+        [Function("GetPaginatedCategories")]
+        public async Task<IActionResult> GetPaginatedCategories(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")]
+            HttpRequest req
+        )
         {
-            CategoryParams categoryParams = ConstructCategoryQueryParams(req);
+            CategoryParams categoryParams = ConstructGetCategoriesQueryParams(req);
             string catNameSuggestion = categoryParams.CatNameSearch;
             int minProdCount = categoryParams.MinProdCount;
             int maxProdCount = categoryParams.MaxProdCount;
@@ -161,6 +160,40 @@ namespace AzureFuncBe
                 categories,
                 continuationToken
             });
+        }
+
+        [Function("GetCategory")]
+        public async Task<IActionResult> GetSingleCategory(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "categories/{id}")]
+            HttpRequest req,
+            string id
+        )
+        {
+            Container container = GetContainer(_categoryContainer);
+            string query = "SELECT TOP 1 * FROM Category c WHERE c.id = @id";
+            var queryDefinition = new QueryDefinition(query);
+            queryDefinition.WithParameter("@id", id);
+            FeedIterator<Category> feedIterator = container.GetItemQueryIterator<Category>(queryDefinition);
+            FeedResponse<Category> feedResponse = await feedIterator.ReadNextAsync();
+            Category category = feedResponse.FirstOrDefault()!;  
+            if (category == null)
+            {
+                return new NotFoundResult();
+            }   
+            return new OkObjectResult(category);
+        }
+
+        [Function("DeleteCategory")]
+        public async Task<IActionResult> DeleteSingleCategory(
+            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "categories/{id}/{partitionKey}")]
+            HttpRequest req,
+            string id,
+            string partitionKey
+        )
+        {
+            Container container = GetContainer(_categoryContainer);
+            await container.DeleteItemAsync<Category>(id, new PartitionKey(id));
+            return new NoContentResult();
         }
     }
 }

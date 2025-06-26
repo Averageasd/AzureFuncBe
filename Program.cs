@@ -22,9 +22,13 @@ var host = new HostBuilder()
         string accountEndpoint = configuration["CosmosDbConnection"]
                                ?? throw new InvalidOperationException("CosmosDbConnection environment variable is not set.");
 
+        var cosmosClientOptions = new CosmosClientOptions
+        {
+            AllowBulkExecution = true
+        };
         services.AddSingleton<CosmosClient>(s =>
         {
-            var client = new CosmosClient(accountEndpoint);
+            var client = new CosmosClient(accountEndpoint, cosmosClientOptions);
             return client;
         });
     })
