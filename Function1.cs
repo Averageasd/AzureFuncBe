@@ -19,8 +19,17 @@ namespace AzureFuncBe
         [JsonProperty("count")]
         public int Count { get; set; }
 
+        [JsonProperty("catDescription")]
+        public string CatDescription { get; set; } = string.Empty;
+
         [JsonProperty("_ts")]
         public long Timestamp { get; set; }
+    }
+
+    public class CategoryUpdateDTO
+    {
+        public string? CatName { get; set; }
+        public string? CatDescription { get; set; } 
     }
 
     public class CategoryParams
@@ -109,6 +118,13 @@ namespace AzureFuncBe
             };
         }
 
+        private CategoryUpdateDTO ConstructCategoryUpdateDTO(HttpRequest req)
+        {
+            using StreamReader reader = new(req.Body);
+            string bodyStr = reader.ReadToEnd();
+            return JsonConvert.DeserializeObject<CategoryUpdateDTO>(bodyStr);
+        }
+
         [Function("GetPaginatedCategories")]
         public async Task<IActionResult> GetPaginatedCategories(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")]
@@ -194,6 +210,32 @@ namespace AzureFuncBe
             Container container = GetContainer(_categoryContainer);
             await container.DeleteItemAsync<Category>(id, new PartitionKey(id));
             return new NoContentResult();
+        }
+
+        [Function("UpdateCategory")]
+        public async Task<IActionResult> UpdateSingleCategory(
+            [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "categories/{id}/{partitionKey}")] 
+        HttpRequest req,
+            string id,
+            string partitionKey)
+        {
+            Container container = GetContainer(_categoryContainer);
+
+            CategoryUpdateDTO categoryUpdateDTO = ConstructCategoryUpdateDTO(req);
+
+            var patchOperations = new List<PatchOperation>
+            {
+                PatchOperation.Replace("/catName", categoryUpdateDTO.CatDescription),
+                PatchOperation.Set("/catDescription",
+                categoryUpdateDTO.CatDescription)
+            };
+
+            await container.PatchItemAsync<User>(
+                id: id,
+                partitionKey: new PartitionKey(partitionKey),
+                patchOperations: patchOperations
+            );
+            return new AcceptedResult();
         }
     }
 }
