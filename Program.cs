@@ -1,5 +1,7 @@
 using AzureFuncBe.ContainerManager;
 using AzureFuncBe.Services;
+using AzureFuncBe.Validations;
+using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +39,7 @@ var host = new HostBuilder()
         services.AddScoped<FolderService>();
         services.AddScoped<FlashcardService>();
         services.AddScoped<JWTTokenDecoder>();
+        services.AddScoped<UserValidation>();
     })
     .Build();
 

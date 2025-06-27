@@ -1,4 +1,5 @@
 ﻿using AzureFuncBe.Services;
+using AzureFuncBe.Validations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -9,23 +10,25 @@ namespace AzureFuncBe.Controllers
     public class UserController
     {
         private readonly ILogger<FolderController> _logger;  
-        private readonly UserService _userService;  
+        private readonly UserService _userService;
+        private readonly UserValidation _userValidation;
         public UserController(
             ILogger<FolderController> logger, 
-            UserService userService
+            UserService userService,
+            UserValidation userValidation   
             )
         {
             _logger = logger;
             _userService = userService;
+            _userValidation = userValidation;
         }
         [Function("Login")]
         public async Task<IActionResult> Auth(
-            [HttpTrigger(AuthorizationLevel.Function, "post")]
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "User/Login")]
         HttpRequest req)
         {
-            if (string.IsNullOrEmpty(req.Headers["Authorization"].FirstOrDefault()))
+            if (!_userValidation.AuthHeaderExists(req))
             {
-                _logger.LogWarning("Authorization header is missing or empty.");
                 return new UnauthorizedResult();
             }
             try
@@ -33,12 +36,19 @@ namespace AzureFuncBe.Controllers
                 await _userService.CreateIfUserNotExist(req);
                 return new OkResult();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "An error occurred while processing the request.");
                 return new BadRequestObjectResult("An error occurred while processing the request.");
             }
         }
 
+        public async Task<IActionResult> GetUserProfile(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "User/Profile")]
+            HttpRequest req
+            )
+        {
+
+            return null;
+        }
     }
 }

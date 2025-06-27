@@ -23,22 +23,34 @@ namespace AzureFuncBe.Services
 
         public async Task CreateIfUserNotExist(HttpRequest req)
         {
-            AuthenticatedUserDTO authenticatedUserDTO = _jwtTokenDecoder.GetAuthenticatedUserDTO(req);
-            var userWithId = await GetUserById(authenticatedUserDTO.Id);
-            if (userWithId == null)
+            try
             {
-                var userContainer = _dBContainerManager.GetContainer(_dBContainerManager.GetUserContainerName());
-                UserModel user = new UserModel
-                {
-                    Id = authenticatedUserDTO.Id,
-                    Name = authenticatedUserDTO.Email!,
-                };
-                await userContainer.CreateItemAsync(user, new PartitionKey(user.Id));
-            }
+                AuthenticatedUserDTO authenticatedUserDTO = _jwtTokenDecoder.GetAuthenticatedUserDTO(req);
 
+                var userWithId = await GetUserById(authenticatedUserDTO.Id!);
+                if (userWithId == null)
+                {
+                    var userContainer = _dBContainerManager.GetContainer(_dBContainerManager.GetUserContainerName());
+                    UserModel user = new UserModel
+                    {
+                        Id = authenticatedUserDTO.Id!,
+                        Name = authenticatedUserDTO.Email!,
+                        Profile = new ProfileModel()
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            UserId = authenticatedUserDTO.Id,
+                        }
+                    };
+                    await userContainer.CreateItemAsync(user, new PartitionKey(user.Id));
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
-        public async Task<UserModel> GetUserById(string id)
+        private async Task<UserModel> GetUserById(string id)
         {
             try
             {
@@ -55,11 +67,10 @@ namespace AzureFuncBe.Services
                     return null;
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 throw;
             }
-           
         }
     }
 }
