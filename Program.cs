@@ -1,4 +1,5 @@
-
+using AzureFuncBe.ContainerManager;
+using AzureFuncBe.Services;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +14,6 @@ var host = new HostBuilder()
     })
     .ConfigureServices((hostContext, services) =>
     {
-        // Get configuration settings directly from environment variables
         var configuration = hostContext.Configuration;
 
         string databaseName = configuration["CosmosDb:DatabaseName"]
@@ -31,6 +31,12 @@ var host = new HostBuilder()
             var client = new CosmosClient(accountEndpoint, cosmosClientOptions);
             return client;
         });
+
+        services.AddScoped<DBContainerManager>();
+        services.AddScoped<UserService>();
+        services.AddScoped<FolderService>();
+        services.AddScoped<FlashcardService>();
+        services.AddScoped<JWTTokenDecoder>();
     })
     .Build();
 
