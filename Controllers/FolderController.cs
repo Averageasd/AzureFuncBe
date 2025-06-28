@@ -1,4 +1,3 @@
-using AzureFuncBe.ContainerManager;
 using AzureFuncBe.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,14 +17,26 @@ namespace AzureFuncBe.Controllers
             _folderService = folderService;
         }
 
+        [Function("GetSingleFolder")]
         public async Task<IActionResult> GetSingleFolder(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "User/{userId}/Folder{folderId}")]
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "User/{userId}/Folder/{folderId}")]
             HttpRequest req,
             string userId,
             string folderId
         )
         {
-            
+            try
+            {
+                var singleFolder = await _folderService.GetSingleFolderAsync(userId, folderId);
+                if (singleFolder == null)
+                {
+                    throw new Exception();
+                }
+                return new OkObjectResult(singleFolder);
+            }
+            catch (Exception) { 
+                return new StatusCodeResult(500);
+            }
         }
     }
 }

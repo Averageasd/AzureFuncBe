@@ -1,14 +1,11 @@
 ﻿using Newtonsoft.Json;
-using System.Text.Json;
 
-namespace AzureFuncBe.Models
+namespace AzureFuncBe.DTOs
 {
-    public class FolderModel
+    public class SingleFolderResponseDTO
     {
         [JsonProperty("id")]
         public required string Id { get; set; }
-        [JsonProperty("userId")]
-        public required string UserId { get; set; }
         [JsonProperty("folderName")]
         public string? Name { get; set; }
         [JsonProperty("cardCount")]

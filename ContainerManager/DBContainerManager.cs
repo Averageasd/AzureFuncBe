@@ -40,5 +40,10 @@ namespace AzureFuncBe.ContainerManager
         {
             return _userContainer;
         }
+
+        public string GetFolderContainerName()
+        {
+            return _folderContainer;
+        }   
     }
 }
