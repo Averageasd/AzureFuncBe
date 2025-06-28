@@ -5,7 +5,7 @@ namespace AzureFuncBe.Models
     public class ProfileModel
     {
         [JsonProperty("id")]
-        public required string Id { get; set; }
+        public string? Id { get; set; }
 
         [JsonProperty("userId")]
         public string? UserId { get; set; }

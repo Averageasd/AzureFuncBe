@@ -10,6 +10,7 @@ namespace AzureFuncBe.ContainerManager
         private readonly string _databaseName;
         private readonly string _flashcardContainer;
         private readonly string _userContainer;
+        private readonly string _folderContainer;
 
         public DBContainerManager(CosmosClient cosmosClient, IConfiguration configuration)
         {
@@ -18,6 +19,7 @@ namespace AzureFuncBe.ContainerManager
             _databaseName = _configuration["CosmosDb:DatabaseName"]!;
             _flashcardContainer = _configuration["FlashcardContainerName"]!;
             _userContainer = _configuration["UserContainerName"]!;
+            _folderContainer = _configuration["FolderContainerName"]!;
         }
 
         public Container GetContainer(string containerName)

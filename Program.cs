@@ -1,7 +1,6 @@
 using AzureFuncBe.ContainerManager;
 using AzureFuncBe.Services;
 using AzureFuncBe.Validations;
-using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
