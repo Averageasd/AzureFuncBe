@@ -30,8 +30,6 @@ namespace AzureFuncBe.Controllers
         {
             try
             {
-                string curDir = Path.GetFullPath(Directory.GetCurrentDirectory());
-                string fileName = "folder-test.json";
                 string jsonString = File.ReadAllText(_uploadMulitiFolderPath);
                 List<FolderModel> folders = JsonConvert.DeserializeObject<List<FolderModel>>(jsonString);
                 Container container = _dbContainerManager.GetContainer(_dbContainerManager.GetFolderContainerName());

@@ -20,5 +20,8 @@ namespace AzureFuncBe.Models
 
         [JsonProperty("createdBy")]
         public string? CreatedBy { get; set; }
+
+        [JsonProperty("createdAt")]
+        public DateOnly CreatedDate { get; set; }
     }
 }
