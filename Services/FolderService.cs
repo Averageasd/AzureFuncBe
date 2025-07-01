@@ -43,6 +43,36 @@ namespace AzureFuncBe.Services
             }
         }
 
+        public async Task IncrementFolderCardCountAsync(string userId, string folderId)
+        {
+            var container = _dBContainerManager.GetContainer(_dBContainerManager.GetFolderContainerName());
+            try
+            {
+                var singleFolder = await GetSingleFolderAsync(userId, folderId);
+                if (singleFolder == null)
+                {
+                    throw new Exception("folder not found");
+                }
+                var patchOperations = new PatchOperation[]
+                {
+                    PatchOperation.Increment("/cardCount", 1),
+                };
+                TransactionalBatch batch = container.CreateTransactionalBatch(new PartitionKey(userId));
+                batch.PatchItem(folderId, patchOperations);
+                TransactionalBatchResponse response = await batch.ExecuteAsync();
+                if (response.IsSuccessStatusCode)
+                {
+                    return;
+                }
+                throw new Exception();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            
+        }
+
         public async Task CreateFolderAsync(string userId, CreateFolderRequestDTO createFolderRequestDTO)
         {
             var container = _dBContainerManager.GetContainer(_dBContainerManager.GetFolderContainerName());
@@ -83,7 +113,7 @@ namespace AzureFuncBe.Services
                     "f.cardCount, " +
                     "f.isFavorite," +
                     "f.createdBy, " +
-                    "f.createdAt "+
+                    "f.createdAt " +
                     "FROM Folder f WHERE f.id = @folderId AND f.userId = @userId";
                 var container = _dBContainerManager.GetContainer(_dBContainerManager.GetFolderContainerName());
                 var queryDefinition = new QueryDefinition(query)
