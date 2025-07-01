@@ -1,7 +1,6 @@
 using AzureFuncBe.DTOs;
 using AzureFuncBe.Services;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -103,7 +102,46 @@ namespace AzureFuncBe.Controllers
             {
                 CreateFolderRequestDTO createFolderRequestDTO = await req.ReadFromJsonAsync<CreateFolderRequestDTO>();
                 await _folderService.CreateFolderAsync(userId, createFolderRequestDTO!);
-                return new OkResult();
+                return new CreatedResult();
+            }
+            catch (Exception)
+            {
+                return new StatusCodeResult(500);
+            }
+        }
+
+        [Function("UpdateFolder")]
+        public async Task<IActionResult> UpdateFolder(
+            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "User/{userId}/Folder/{folderId}")]
+            HttpRequest req,
+            string userId,
+            string folderId
+        )
+        {
+            try
+            {
+                FolderUpdateRequestDTO updateFolderRequestDTO = await req.ReadFromJsonAsync<FolderUpdateRequestDTO>();
+                await _folderService.UpdateFolderAsync(userId, folderId, updateFolderRequestDTO!);
+                return new NoContentResult();
+            }
+            catch (Exception)
+            {
+                return new StatusCodeResult(500);
+            }
+        }
+
+        [Function("DeleteFolder")]
+        public async Task<IActionResult> DeleteFolder(
+             [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "User/{userId}/Folder/{folderId}")]
+             HttpRequest req,
+            string userId,
+            string folderId
+            )
+        {
+            try
+            {
+                await _folderService.DeleteFolderAsync(userId, folderId);
+                return new NoContentResult();
             }
             catch (Exception)
             {

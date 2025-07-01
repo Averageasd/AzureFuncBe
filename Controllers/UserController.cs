@@ -27,7 +27,7 @@ namespace AzureFuncBe.Controllers
         }
         [Function("Auth")]
         public async Task<IActionResult> Auth(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "User/Login")]
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "Userl/Login")]
         HttpRequest req)
         {
             if (!_userValidation.AuthHeaderExists(req))

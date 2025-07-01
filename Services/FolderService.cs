@@ -16,6 +16,33 @@ namespace AzureFuncBe.Services
             _dBContainerManager = dBContainerManager;
         }
 
+        public async Task UpdateFolderAsync(string userId, string folderId, FolderUpdateRequestDTO folderUpdateRequestDTO)
+        {
+            var container = _dBContainerManager.GetContainer(_dBContainerManager.GetFolderContainerName());
+            try
+            {
+                var patchOperations = new PatchOperation[]
+                {
+                    PatchOperation.Replace("/folderName", folderUpdateRequestDTO.Name),
+                    PatchOperation.Replace("/folderDesc", folderUpdateRequestDTO.FolderDescription),
+                    PatchOperation.Replace("/isFavorite", folderUpdateRequestDTO.IsFavorite)
+                };
+
+                TransactionalBatch batch = container.CreateTransactionalBatch(new PartitionKey(userId));
+                batch.PatchItem(folderId, patchOperations);
+                TransactionalBatchResponse response = await batch.ExecuteAsync();
+                if (response.IsSuccessStatusCode)
+                {
+                    return;
+                }
+                throw new Exception();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
         public async Task CreateFolderAsync(string userId, CreateFolderRequestDTO createFolderRequestDTO)
         {
             var container = _dBContainerManager.GetContainer(_dBContainerManager.GetFolderContainerName());
@@ -55,7 +82,8 @@ namespace AzureFuncBe.Services
                     "f.folderDesc, " +
                     "f.cardCount, " +
                     "f.isFavorite," +
-                    " f.createdBy " +
+                    "f.createdBy, " +
+                    "f.createdAt "+
                     "FROM Folder f WHERE f.id = @folderId AND f.userId = @userId";
                 var container = _dBContainerManager.GetContainer(_dBContainerManager.GetFolderContainerName());
                 var queryDefinition = new QueryDefinition(query)
@@ -124,7 +152,7 @@ namespace AzureFuncBe.Services
                     }
 
                     // break tie in ordering
-                    query += ", f.createdAt DESC"; 
+                    query += ", f.createdAt DESC";
                 }
 
                 if (paginatedFoldersSearchDTO.OrderedProperty.Equals(OrderPropertiesConstants.CardCount))
@@ -191,6 +219,30 @@ namespace AzureFuncBe.Services
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
+                throw;
+            }
+        }
+
+        // delete folder by id
+        // step 1: create db container
+        // step 2: delete folder by id
+        // NOTE: we will comeback to this method later when we start adding flashcards to container
+        // we will delegate the job of deleteing all flashcards in the folder to an queue-based azure function. this function will poll the id of the folder we want to delete and remove all flashcards within it along with the folder itself.
+        // we have to do this later because each folder can contain multiple flashcards and we don't want users to wait for this potentially time-consuming operation.
+        // step 3: call this method from controller at delete route
+        public async Task DeleteFolderAsync(string userId, string folderId)
+        {
+            var container = _dBContainerManager.GetContainer(_dBContainerManager.GetFolderContainerName());
+            try
+            {
+                var response = await container.DeleteItemAsync<FolderModel>(folderId, new PartitionKey(userId));
+                if (response.StatusCode != System.Net.HttpStatusCode.NoContent)
+                {
+                    throw new Exception("Failed to delete folder");
+                }
+            }
+            catch (Exception)
+            {
                 throw;
             }
         }
