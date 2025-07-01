@@ -1,5 +1,6 @@
 ﻿using AzureFuncBe.ContainerManager;
 using AzureFuncBe.DTOs;
+using AzureFuncBe.Models;
 using Microsoft.Azure.Cosmos;
 
 namespace AzureFuncBe.Services
@@ -13,6 +14,35 @@ namespace AzureFuncBe.Services
         )
         {
             _dBContainerManager = dBContainerManager;
+        }
+
+        public async Task CreateFolderAsync(string userId, CreateFolderRequestDTO createFolderRequestDTO)
+        {
+            var container = _dBContainerManager.GetContainer(_dBContainerManager.GetFolderContainerName());
+            var folder = new FolderModel
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = createFolderRequestDTO.Name,
+                CardCount = 0,
+                UserId = userId,
+                FolderDescription = createFolderRequestDTO.FolderDescription,
+                IsFavorite = createFolderRequestDTO.IsFavorite,
+                CreatedBy = userId,
+                CreatedDate = DateOnly.FromDateTime(DateTime.Today)
+            };
+            try
+            {
+                var response = await container.CreateItemAsync(folder, new PartitionKey(folder.UserId));
+                if (response.StatusCode != System.Net.HttpStatusCode.Created)
+                {
+                    throw new Exception("Failed to create folder");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating folder: {ex.Message}");
+                throw;
+            }
         }
 
         public async Task<SingleFolderResponseDTO?> GetSingleFolderAsync(string userId, string folderId)
@@ -40,15 +70,7 @@ namespace AzureFuncBe.Services
                 throw;
             }
         }
-        
-        // step 1: perform searching
-        // 1.1 : search by folder name
-        // step 2: filtering
-        // 2.1: filter by favorite
-        // 2.2: filter by created by username
-        // 2.3 : filter by date created
-        // step 3: ordering
-        // 3.1 : order by date
+
         public async Task<PaginatedFoldersDTO?> GetFoldersAsync(string userId, PaginatedFoldersSearchDTO paginatedFoldersSearchDTO)
         {
             try
@@ -76,6 +98,67 @@ namespace AzureFuncBe.Services
                 {
                     query += " AND f.createdAt <= @createdDateSearchMax";
                 }
+                if (paginatedFoldersSearchDTO.OrderedProperty.Equals(OrderPropertiesConstants.CreatedAt))
+                {
+                    query += " ORDER BY f.createdAt";
+                    if (paginatedFoldersSearchDTO.SortDirection.Equals(OrderPropertiesConstants.DescOrder))
+                    {
+                        query += " DESC";
+                    }
+                    else if (paginatedFoldersSearchDTO.SortDirection.Equals(OrderPropertiesConstants.AscOrder))
+                    {
+                        query += " ASC";
+                    }
+                }
+
+                if (paginatedFoldersSearchDTO.OrderedProperty.Equals(OrderPropertiesConstants.FolderName))
+                {
+                    query += " ORDER BY f.folderName";
+                    if (paginatedFoldersSearchDTO.SortDirection.Equals(OrderPropertiesConstants.DescOrder))
+                    {
+                        query += " DESC";
+                    }
+                    else if (paginatedFoldersSearchDTO.SortDirection.Equals(OrderPropertiesConstants.AscOrder))
+                    {
+                        query += " ASC";
+                    }
+
+                    // break tie in ordering
+                    query += ", f.createdAt DESC"; 
+                }
+
+                if (paginatedFoldersSearchDTO.OrderedProperty.Equals(OrderPropertiesConstants.CardCount))
+                {
+                    query += " ORDER BY f.cardCount";
+                    if (paginatedFoldersSearchDTO.SortDirection.Equals(OrderPropertiesConstants.DescOrder))
+                    {
+                        query += " DESC";
+                    }
+                    else if (paginatedFoldersSearchDTO.SortDirection.Equals(OrderPropertiesConstants.AscOrder))
+                    {
+                        query += " ASC";
+                    }
+
+                    // break tie in ordering
+                    query += ", f.createdAt DESC";
+                }
+
+                if (paginatedFoldersSearchDTO.OrderedProperty.Equals(OrderPropertiesConstants.CreatedBy))
+                {
+                    query += " ORDER BY f.createdBy";
+                    if (paginatedFoldersSearchDTO.SortDirection.Equals(OrderPropertiesConstants.DescOrder))
+                    {
+                        query += " DESC";
+                    }
+                    else if (paginatedFoldersSearchDTO.SortDirection.Equals(OrderPropertiesConstants.AscOrder))
+                    {
+                        query += " ASC";
+                    }
+
+                    // break tie in ordering
+                    query += ", f.createdAt DESC";
+                }
+
 
                 var queryDefinition = new QueryDefinition(query)
                    .WithParameter("@userId", userId)
