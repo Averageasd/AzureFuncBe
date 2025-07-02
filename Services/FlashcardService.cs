@@ -44,7 +44,7 @@ namespace AzureFuncBe.Services
 
             try
             {
-                var response = await container.CreateItemAsync(card, new PartitionKey(card.UserId));
+                var response = await container.CreateItemAsync(card, new Microsoft.Azure.Cosmos.PartitionKey(card.UserId));
                 if (response.StatusCode != System.Net.HttpStatusCode.Created)
                 {
                     throw new Exception("Failed to create card");
@@ -57,6 +57,67 @@ namespace AzureFuncBe.Services
             }
         }
 
-        
+        // step 1: get database reference for flashcard
+        // step 2: get single item from cosmodb using flashcard id
+        // step 3: check from controller if folder exists, if not, throw exception
+        // step 4: if exists, call this method
+        public async Task<SingleFlashcardResponseDTO> GetSingleFlashcardAsync(string flashcardId, string userId)
+        {
+            var container = _dBContainerManager.GetContainer(_dBContainerManager.GetFlashcardContainerName());
+            try
+            {
+                ItemResponse<SingleFlashcardResponseDTO> response = await container.ReadItemAsync<SingleFlashcardResponseDTO>(flashcardId, new Microsoft.Azure.Cosmos.PartitionKey(userId));
+                SingleFlashcardResponseDTO item = response.Resource;
+                return item;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task UpdateFlashcardAsync(string flashcardId, string userId, UpdateFlashcardRequestDTO updateFlashcardRequestDTO)
+        {
+            var container = _dBContainerManager.GetContainer(_dBContainerManager.GetFlashcardContainerName());
+            try
+            {
+                var patchOperations = new PatchOperation[]
+                {
+                    PatchOperation.Replace("/cardFront", updateFlashcardRequestDTO.CardFrontText),
+                    PatchOperation.Replace("/cardBack", updateFlashcardRequestDTO.CardBackText),
+                    PatchOperation.Replace("/isFavorite", updateFlashcardRequestDTO.IsFavorite),
+                    PatchOperation.Replace("/proficiency", updateFlashcardRequestDTO.Proficiency)
+                };
+                TransactionalBatch batch = container.CreateTransactionalBatch(new PartitionKey(userId));
+                batch.PatchItem(flashcardId, patchOperations);
+                TransactionalBatchResponse response = await batch.ExecuteAsync();
+                if (response.IsSuccessStatusCode)
+                {
+                    return;
+                }
+                throw new Exception();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task DeleteFlashcardAsync(string flashcardId, string userId)
+        {
+            var container = _dBContainerManager.GetContainer(_dBContainerManager.GetFlashcardContainerName());
+            try
+            {
+                var response = await container.DeleteItemAsync<FolderModel>(flashcardId, new PartitionKey(userId));
+                if (response.StatusCode != System.Net.HttpStatusCode.NoContent)
+                {
+                    throw new Exception("Failed to delete flashcard");
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
     }
 }

@@ -3,13 +3,9 @@ using AzureFuncBe.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Identity.Client;
 
 namespace AzureFuncBe.Controllers
 {
-    // step 1: inject needed services
-    // step 2: create controller headers
-    // step 3: create flashcard create card service
     public class FlashcardController
     {
         private readonly FlashcardService _flashcardService;
@@ -22,7 +18,7 @@ namespace AzureFuncBe.Controllers
         }
 
         [Function("CreateFlashCard")]
-        
+
         public async Task<IActionResult> CreateFlashCard(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "User/{userId}/Folder/{folderId}/Flashcard")]
              HttpRequest req,
@@ -33,6 +29,12 @@ namespace AzureFuncBe.Controllers
             try
             {
                 var createNewCardDTO = await req.ReadFromJsonAsync<CreateNewCardRequestDTO>();
+                var existingFolder = await _folderService.GetSingleFolderAsync(userId, folderId);
+                // check if current folder exists before creating a new card in it
+                if (existingFolder == null)
+                {
+                    throw new Exception();
+                }
                 await _flashcardService.CreateNewFlashcardAsync(userId, folderId, createNewCardDTO);
                 await _folderService.IncrementFolderCardCountAsync(userId, folderId);
                 return new CreatedResult();
@@ -41,31 +43,56 @@ namespace AzureFuncBe.Controllers
             {
                 return new StatusCodeResult(500);
             }
-            
-            
+
+
         }
 
         [Function("GetSingleFlashcard")]
         public async Task<IActionResult> GetFlashCardById(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "User/{userId}/Folder/{folderId}/Flashcard/{flashcardId}")]
-            HttpRequest req,
             string userId,
             string folderId,
             string flashcardId
         )
         {
-            return new OkResult();
+
+            try
+            {
+                var existingFolder = await _folderService.GetSingleFolderAsync(userId, folderId);
+                // check if current folder exists before getting a card
+                if (existingFolder == null)
+                {
+                    throw new Exception();
+                }
+                var singleCard = await _flashcardService.GetSingleFlashcardAsync(flashcardId, userId);
+                return new OkObjectResult(singleCard);
+            }
+            catch (Exception)
+            {
+                return new StatusCodeResult(500);
+            }
         }
 
         [Function("GetPaginatedFlashcards")]
         public async Task<IActionResult> GetPaginatedFlashCards(
-         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "User/{userId}/Folder/{folderId}/Flashcard")]
+         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "User/{userId}/Folder/{folderId}/Flashcard/{flashcardId}")]
              HttpRequest req,
              string userId,
-             string folderId
+             string folderId,
+             string flashcardId
         )
         {
+            try
+            {
+                var existingFolder = await _folderService.GetSingleFolderAsync(userId, folderId);
+            }
+            catch (Exception)
+            {
+
+            }
             return new OkResult();
+
+
         }
 
         [Function("UpdateFlashCard")]
@@ -77,23 +104,49 @@ namespace AzureFuncBe.Controllers
              string flashcardId
         )
         {
-            return new NoContentResult();
+            try
+            {
+                var existingFolder = await _folderService.GetSingleFolderAsync(userId, folderId);
+                // check if current folder exists before updating a card
+                if (existingFolder == null)
+                {
+                    throw new Exception();
+                }
+
+                var updateFlashcardDTO = await req.ReadFromJsonAsync<UpdateFlashcardRequestDTO>();
+                await _flashcardService.UpdateFlashcardAsync(flashcardId, userId, updateFlashcardDTO);
+                return new NoContentResult();
+            }
+            catch (Exception)
+            {
+                return new StatusCodeResult(500);
+            }
         }
 
         [Function("DeleteFlashCard")]
         public async Task<IActionResult> DeleteFlashCard(
          [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "User/{userId}/Folder/{folderId}/Flashcard/{flashcardId}")]
-             HttpRequest req,
              string userId,
              string folderId,
              string flashcardId
         )
         {
-            return new NoContentResult();
+            try
+            {
+                var existingFolder = await _folderService.GetSingleFolderAsync(userId, folderId);
+                // check if current folder exists before deleting a card
+                if (existingFolder == null)
+                {
+                    throw new Exception();
+                }
+
+                await _flashcardService.DeleteFlashcardAsync(flashcardId, userId);
+                return new NoContentResult();
+            }
+            catch (Exception)
+            {
+                return new StatusCodeResult(500);
+            }
         }
-
-
-
-
     }
 }

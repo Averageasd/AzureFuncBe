@@ -1,6 +1,7 @@
 ﻿using AzureFuncBe.ContainerManager;
 using AzureFuncBe.DTOs;
 using AzureFuncBe.Models;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Azure.Cosmos;
 
 namespace AzureFuncBe.Services
