@@ -16,7 +16,7 @@ namespace AzureFuncBe.Models
         [JsonProperty("folderDesc")]
         public string? FolderDescription { get; set; }
         [JsonProperty("isFavorite")]
-        public required bool IsFavorite { get; set; }
+        public int IsFavorite { get; set; } = 0;
 
         [JsonProperty("createdBy")]
         public string? CreatedBy { get; set; }

@@ -1,7 +1,7 @@
 ﻿using AzureFuncBe.Models;
 using Newtonsoft.Json;
 
-namespace AzureFuncBe.DTOs
+namespace AzureFuncBe.DTOs.FlashcardDTOs
 {
     public class SingleFlashcardResponseDTO
     {
@@ -18,12 +18,12 @@ namespace AzureFuncBe.DTOs
         [JsonProperty("cardTags")]
         public List<string>? Tags { get; set; }
         [JsonProperty("isFavorite")]
-        public bool IsFavorite { get; set; }
+        public int IsFavorite { get; set; }
         [JsonProperty("studyTimes")]
         public int StudyTimes { get; set; }
         [JsonProperty("proficiency")]
         public string? Proficiency { get; set; }
-        [JsonProperty("CreatedAt")]
+        [JsonProperty("createdAt")]
         public DateOnly CreatedDate { get; set; }
     }
 }

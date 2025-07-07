@@ -1,9 +1,9 @@
-﻿namespace AzureFuncBe.DTOs
+﻿namespace AzureFuncBe.DTOs.FolderDTOs
 {
     public class CreateFolderRequestDTO
     {
         public string? Name { get; set; } = "";
-        public bool IsFavorite { get; set; } = false;
+        public int IsFavorite { get; set; } = 0;
         public string? FolderDescription { get; set; } = "";
     }
 }

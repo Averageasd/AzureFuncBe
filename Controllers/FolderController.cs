@@ -1,4 +1,4 @@
-using AzureFuncBe.DTOs;
+using AzureFuncBe.DTOs.FolderDTOs;
 using AzureFuncBe.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -74,9 +74,9 @@ namespace AzureFuncBe.Controllers
                 {
                     paginatedFoldersSearchDTO.CreatedDateSearchMax = createdDateSearchMax;
                 }
-                if (!string.IsNullOrEmpty(isFavoriteString) && isFavoriteString.Equals("true"))
+                if (!string.IsNullOrEmpty(isFavoriteString) && int.TryParse(isFavoriteString, out var isFavoriteInt))
                 {
-                    paginatedFoldersSearchDTO.FolderIsFavorite = true;
+                    paginatedFoldersSearchDTO.FolderIsFavorite = isFavoriteInt;
                 }
                 var paginatedFolders = await _folderService.GetFoldersAsync(userId, paginatedFoldersSearchDTO);
                 if (paginatedFolders == null)

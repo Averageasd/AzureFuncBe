@@ -1,7 +1,6 @@
 ﻿using AzureFuncBe.ContainerManager;
-using AzureFuncBe.DTOs;
+using AzureFuncBe.DTOs.FolderDTOs;
 using AzureFuncBe.Models;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Azure.Cosmos;
 
 namespace AzureFuncBe.Services
@@ -150,7 +149,10 @@ namespace AzureFuncBe.Services
                 }
 
                 query += " AND f.folderName LIKE @folderNameSearch";
-                query += " AND f.isFavorite = @folderIsFavorite";
+                if (paginatedFoldersSearchDTO.FolderIsFavorite == 0 || paginatedFoldersSearchDTO.FolderIsFavorite == 1)
+                {
+                    query += " AND f.isFavorite = @folderIsFavorite";
+                }
                 query += " AND f.createdBy LIKE @createdByUserNameSearch";
                 query += " AND f.createdAt >= @createdDateSearchMin";
                 if (paginatedFoldersSearchDTO.CreatedDateSearchMax > paginatedFoldersSearchDTO.CreatedDateSearchMin)

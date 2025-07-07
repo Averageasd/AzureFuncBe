@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace AzureFuncBe.DTOs
+namespace AzureFuncBe.DTOs.FolderDTOs
 {
     public class SingleFolderResponseDTO
     {
@@ -13,7 +13,7 @@ namespace AzureFuncBe.DTOs
         [JsonProperty("folderDesc")]
         public string? FolderDescription { get; set; }
         [JsonProperty("isFavorite")]
-        public required bool IsFavorite { get; set; }
+        public int IsFavorite { get; set; }
 
         [JsonProperty("createdBy")]
         public string? CreatedBy { get; set; }

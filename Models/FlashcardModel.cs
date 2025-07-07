@@ -25,7 +25,7 @@ namespace AzureFuncBe.Models
         [JsonProperty("cardTags")]
         public List<string>? Tags { get; set; }
         [JsonProperty("isFavorite")]
-        public bool IsFavorite { get; set; }
+        public int IsFavorite { get; set; }
         [JsonProperty("studyTimes")]
         public int StudyTimes { get; set; }
         [JsonProperty("proficiency")]

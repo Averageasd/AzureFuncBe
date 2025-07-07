@@ -1,5 +1,5 @@
 ﻿using AzureFuncBe.ContainerManager;
-using AzureFuncBe.DTOs;
+using AzureFuncBe.DTOs.FlashcardDTOs;
 using AzureFuncBe.Models;
 using Microsoft.Azure.Cosmos;
 
@@ -112,6 +112,57 @@ namespace AzureFuncBe.Services
                 if (response.StatusCode != System.Net.HttpStatusCode.NoContent)
                 {
                     throw new Exception("Failed to delete flashcard");
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<PaginatedFlashcardDTO> GetFlashcardsAsync(string folderId, PaginatedFlashcardSearchDTO paginatedFlashcardSearchDTO)
+        {
+            try
+            {
+                var container = _dBContainerManager.GetContainer(_dBContainerManager.GetFlashcardContainerName());
+                List<SingleFlashcardResponseDTO> flashcards = new List<SingleFlashcardResponseDTO>();
+                var query = "" +
+                    "SELECT fc.id, " +
+                    "fc.userId, " +
+                    "fc.folderId, " +
+                    "fc.cardFront, " +
+                    "fc.cardBack, " +
+                    "fc.cardTags, " +
+                    "fc.isFavorite, " +
+                    "fc.studyTimes, " +
+                    "fc.proficiency, " +
+                    "fc.createdAt " +
+                    "FROM Flashcard fc WHERE fc.folderId = @folderId";
+
+                query += " AND fc.cardFront LIKE @cardFrontBackTextSearch OR fc.cardBack LIKE  @cardFrontBackTextSearch";
+
+                var queryDefinition = new QueryDefinition(query)
+                    .WithParameter("@folderId", folderId)
+                    .WithParameter("@cardFrontBackTextSearch", $"{paginatedFlashcardSearchDTO.CardFrontBackTextSearch}%");
+
+                using (FeedIterator<SingleFlashcardResponseDTO> setIterator = container.GetItemQueryIterator<SingleFlashcardResponseDTO>(
+                queryDefinition,
+                    paginatedFlashcardSearchDTO.ContinuationToken,
+                    requestOptions:
+                    new QueryRequestOptions
+                    {
+
+                        MaxItemCount = 10
+                    }
+                    ))
+                {
+                    var flashcardsResponse = await setIterator.ReadNextAsync();
+                    flashcards.AddRange(flashcardsResponse);
+                    return new PaginatedFlashcardDTO
+                    {
+                        ListResponses = flashcards,
+                        ContinuationToken = flashcardsResponse.ContinuationToken
+                    };
                 }
             }
             catch (Exception)

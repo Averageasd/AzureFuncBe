@@ -1,4 +1,4 @@
-﻿using AzureFuncBe.DTOs;
+﻿using AzureFuncBe.DTOs.FlashcardDTOs;
 using AzureFuncBe.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -73,28 +73,6 @@ namespace AzureFuncBe.Controllers
             }
         }
 
-        [Function("GetPaginatedFlashcards")]
-        public async Task<IActionResult> GetPaginatedFlashCards(
-         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "User/{userId}/Folder/{folderId}/Flashcard/{flashcardId}")]
-             HttpRequest req,
-             string userId,
-             string folderId,
-             string flashcardId
-        )
-        {
-            try
-            {
-                var existingFolder = await _folderService.GetSingleFolderAsync(userId, folderId);
-            }
-            catch (Exception)
-            {
-
-            }
-            return new OkResult();
-
-
-        }
-
         [Function("UpdateFlashCard")]
         public async Task<IActionResult> UpdateFlashCard(
          [HttpTrigger(AuthorizationLevel.Function, "put", Route = "User/{userId}/Folder/{folderId}/Flashcard/{flashcardId}")]
@@ -142,6 +120,39 @@ namespace AzureFuncBe.Controllers
 
                 await _flashcardService.DeleteFlashcardAsync(flashcardId, userId);
                 return new NoContentResult();
+            }
+            catch (Exception)
+            {
+                return new StatusCodeResult(500);
+            }
+        }
+
+        [Function("GetPaginatedFlashcards")]
+        public async Task<IActionResult> GetPaginatedFlashcards(
+         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "User/{userId}/Folder/{folderId}/Flashcard")]
+             HttpRequest req,
+             string userId,
+             string folderId
+        )
+        {
+            try
+            {
+                var existingFolder = await _folderService.GetSingleFolderAsync(userId, folderId);
+                // check if current folder exists before deleting a card
+                if (existingFolder == null)
+                {
+                    throw new Exception();
+                }
+
+                string? continuationToken = req.Headers["continuationToken"];
+                string? cardFrontBackTextSearch = req.Query["cardFrontBackTextSearch"];
+                PaginatedFlashcardSearchDTO paginatedFlashcardSearchDTO = new PaginatedFlashcardSearchDTO()
+                {
+                    ContinuationToken = continuationToken ?? null,
+                    CardFrontBackTextSearch = cardFrontBackTextSearch ?? string.Empty
+                };
+                var paginatedFlashcards = await _flashcardService.GetFlashcardsAsync(folderId, paginatedFlashcardSearchDTO);
+                return new OkObjectResult(paginatedFlashcards);
             }
             catch (Exception)
             {

@@ -1,7 +1,7 @@
 ﻿using AzureFuncBe.Models;
 using Newtonsoft.Json;
 
-namespace AzureFuncBe.DTOs
+namespace AzureFuncBe.DTOs.FlashcardDTOs
 {
     public class UpdateFlashcardRequestDTO
     {
@@ -9,6 +9,6 @@ namespace AzureFuncBe.DTOs
         public string? CardBackText { get; set; }
         public string? Proficiency { get; set; }
         public List<string>? Tags { get; set; }
-        public bool IsFavorite { get; set; }
+        public int IsFavorite { get; set; }
     }
 }

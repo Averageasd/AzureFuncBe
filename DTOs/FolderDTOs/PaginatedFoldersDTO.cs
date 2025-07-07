@@ -1,4 +1,4 @@
-﻿namespace AzureFuncBe.DTOs
+﻿namespace AzureFuncBe.DTOs.FolderDTOs
 {
     public class PaginatedFoldersDTO
     {
