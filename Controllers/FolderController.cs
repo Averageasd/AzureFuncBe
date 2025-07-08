@@ -66,11 +66,11 @@ namespace AzureFuncBe.Controllers
                     OrderedProperty = string.IsNullOrEmpty(orderedProperty) ? OrderPropertiesConstants.CreatedAt : orderedProperty,
                     SortDirection = string.IsNullOrEmpty(sortDirection) ? OrderPropertiesConstants.DescOrder : sortDirection
                 };
-                if (!string.IsNullOrEmpty(dateSearchMin) && DateOnly.TryParse(dateSearchMin, out var createdDateSearchMin))
+                if (!string.IsNullOrEmpty(dateSearchMin) && DateTimeOffset.TryParse(dateSearchMin, out var createdDateSearchMin))
                 {
                     paginatedFoldersSearchDTO.CreatedDateSearchMin = createdDateSearchMin;
                 }
-                if (!string.IsNullOrEmpty(dateSearchMax) && DateOnly.TryParse(dateSearchMax, out var createdDateSearchMax))
+                if (!string.IsNullOrEmpty(dateSearchMax) && DateTimeOffset.TryParse(dateSearchMax, out var createdDateSearchMax))
                 {
                     paginatedFoldersSearchDTO.CreatedDateSearchMax = createdDateSearchMax;
                 }

@@ -30,7 +30,7 @@ namespace AzureFuncBe.Models
         public int StudyTimes { get; set; }
         [JsonProperty("proficiency")]
         public string? Proficiency { get; set; } = ProficiencyConstants.NOT_LEARN;
-        [JsonProperty("CreatedAt")]
-        public DateOnly CreatedDate { get; set; }
+        [JsonProperty("createdAt")]
+        public string? CreatedDate { get; set; }
     }
 }

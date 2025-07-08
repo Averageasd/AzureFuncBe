@@ -1,6 +1,7 @@
 ﻿using AzureFuncBe.ContainerManager;
 using AzureFuncBe.DTOs.FolderDTOs;
 using AzureFuncBe.Models;
+using AzureFuncBe.Utils;
 using Microsoft.Azure.Cosmos;
 
 namespace AzureFuncBe.Services
@@ -85,7 +86,7 @@ namespace AzureFuncBe.Services
                 FolderDescription = createFolderRequestDTO.FolderDescription,
                 IsFavorite = createFolderRequestDTO.IsFavorite,
                 CreatedBy = userId,
-                CreatedDate = DateOnly.FromDateTime(DateTime.Today)
+                CreatedDate = GenerateNewDateUtil.GenerateNewDate(DateTimeOffset.Now)
             };
             try
             {

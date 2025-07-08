@@ -146,12 +146,48 @@ namespace AzureFuncBe.Controllers
 
                 string? continuationToken = req.Headers["continuationToken"];
                 string? cardFrontBackTextSearch = req.Query["cardFrontBackTextSearch"];
+                string? tagSearch = req.Query["tagSearch"];
+                string? isFavorite = req.Query["isFavorite"];
+                string? proficiency = req.Query["proficiency"];
+                string? orderProperty = req.Query["orderProperty"];
+                string? sortDirection = req.Query["sortDirection"];
+                string? createdDateSearchMin = req.Query["createdDateSearchMin"];
+                string? createdDateSearchMax = req.Query["createdDateSearchMax"];
+
                 PaginatedFlashcardSearchDTO paginatedFlashcardSearchDTO = new PaginatedFlashcardSearchDTO()
                 {
                     ContinuationToken = continuationToken ?? null,
-                    CardFrontBackTextSearch = cardFrontBackTextSearch ?? string.Empty
+                    CardFrontBackTextSearch = cardFrontBackTextSearch ?? string.Empty,
+                    TagSearch = cardFrontBackTextSearch ?? string.Empty,
+                    Proficiency = proficiency ?? string.Empty,
+                    OrderProperty = orderProperty ?? FlashCardSearchOrderProperties.CreatedAt,
+                    SortDirection = sortDirection ?? FlashCardSearchOrderProperties.DescOrder
                 };
+                if (!string.IsNullOrEmpty(isFavorite) && int.TryParse(isFavorite, out var parsedIsFavorite))
+                {
+                    if (parsedIsFavorite < -1 || parsedIsFavorite > 2)
+                    {
+                        throw new Exception();
+                    }
+                    else
+                    {
+                        paginatedFlashcardSearchDTO.IsFavorite = parsedIsFavorite;
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(createdDateSearchMin))
+                {
+                    paginatedFlashcardSearchDTO.CreatedDateSearchMin = createdDateSearchMin + "+00:00";
+                }
+
+                if (!string.IsNullOrEmpty(createdDateSearchMax))
+                {
+                    paginatedFlashcardSearchDTO.CreatedDateSearchMax = createdDateSearchMax + "+00:00";
+                }
+
                 var paginatedFlashcards = await _flashcardService.GetFlashcardsAsync(folderId, paginatedFlashcardSearchDTO);
+                req.HttpContext.Response.Headers.Append("x-my-token", paginatedFlashcards.ContinuationToken);
+
                 return new OkObjectResult(paginatedFlashcards);
             }
             catch (Exception)

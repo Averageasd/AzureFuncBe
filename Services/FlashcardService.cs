@@ -1,11 +1,12 @@
 ﻿using AzureFuncBe.ContainerManager;
 using AzureFuncBe.DTOs.FlashcardDTOs;
 using AzureFuncBe.Models;
+using AzureFuncBe.Utils;
 using Microsoft.Azure.Cosmos;
 
 namespace AzureFuncBe.Services
 {
-    // now implement create card service
+    // now implement create card servilce
     // we need to create flashcard model
     public class FlashcardService
     {
@@ -17,6 +18,7 @@ namespace AzureFuncBe.Services
         )
         {
             _dBContainerManager = dBContainerManager;
+
 
         }
 
@@ -39,7 +41,7 @@ namespace AzureFuncBe.Services
                 Tags = createNewCardRequestDTO.Tags,
                 StudyTimes = 0,
                 Proficiency = ProficiencyConstants.NOT_LEARN,
-                CreatedDate = DateOnly.FromDateTime(DateTime.Today)
+                CreatedDate = GenerateNewDateUtil.GenerateNewDate(DateTimeOffset.Now)
             };
 
             try
@@ -139,11 +141,57 @@ namespace AzureFuncBe.Services
                     "fc.createdAt " +
                     "FROM Flashcard fc WHERE fc.folderId = @folderId";
 
-                query += " AND fc.cardFront LIKE @cardFrontBackTextSearch OR fc.cardBack LIKE  @cardFrontBackTextSearch";
+                query += " AND fc.cardFront LIKE @cardFrontBackTextSearch OR fc.cardBack LIKE @cardFrontBackTextSearch";
+                query += " AND EXISTS (SELECT VALUE t FROM t IN fc.cardTags WHERE CONTAINS(t, @tagSearch, true))";
+
+
+                if (paginatedFlashcardSearchDTO.IsFavorite == 0 || paginatedFlashcardSearchDTO.IsFavorite == 1)
+                {
+                    query += " AND fc.isFavorite = @isFavorite";
+                }
+
+                if (!string.IsNullOrEmpty(paginatedFlashcardSearchDTO.Proficiency))
+                {
+                    query += " AND fc.proficiency = @proficiency";
+                }
+
+                query += " AND fc.createdAt >= @createdDateSearchMin AND fc.createdAt <= @createdDateSearchMax";
+             
+
+                // SORTING
+                if (paginatedFlashcardSearchDTO.OrderProperty == FlashCardSearchOrderProperties.CreatedAt)
+                {
+                    if (paginatedFlashcardSearchDTO.SortDirection == FlashCardSearchOrderProperties.DescOrder)
+                    {
+                        query += " ORDER BY fc.createdAt DESC";
+                    }
+                    else
+                    {
+                        query += " ORDER BY fc.createdAt ASC";
+                    }
+                }
+                else if (paginatedFlashcardSearchDTO.OrderProperty == FlashCardSearchOrderProperties.StudyTimes)
+                {
+                    if (paginatedFlashcardSearchDTO.SortDirection == FlashCardSearchOrderProperties.DescOrder)
+                    {
+                        query += " ORDER BY fc.studyTimes DESC";
+                    }
+                    else
+                    {
+                        query += " ORDER BY fc.studyTimes ASC";
+                    }
+                    query += ", fc.createdAt DESC";
+                }
+                
 
                 var queryDefinition = new QueryDefinition(query)
                     .WithParameter("@folderId", folderId)
-                    .WithParameter("@cardFrontBackTextSearch", $"{paginatedFlashcardSearchDTO.CardFrontBackTextSearch}%");
+                    .WithParameter("@cardFrontBackTextSearch", $"{paginatedFlashcardSearchDTO.CardFrontBackTextSearch}%")
+                    .WithParameter("@tagSearch",$"{paginatedFlashcardSearchDTO.TagSearch}")
+                    .WithParameter("@isFavorite", paginatedFlashcardSearchDTO.IsFavorite)
+                    .WithParameter("@proficiency", $"{paginatedFlashcardSearchDTO.Proficiency}")
+                    .WithParameter("@createdDateSearchMin", paginatedFlashcardSearchDTO.CreatedDateSearchMin)
+                    .WithParameter("@createdDateSearchMax", paginatedFlashcardSearchDTO.CreatedDateSearchMax);
 
                 using (FeedIterator<SingleFlashcardResponseDTO> setIterator = container.GetItemQueryIterator<SingleFlashcardResponseDTO>(
                 queryDefinition,

@@ -17,8 +17,8 @@
         public int FolderIsFavorite { get; set; } = -1;
         public string CreatedByUsernameSearch { get; set; } = string.Empty;
 
-        public DateOnly CreatedDateSearchMin { get; set; } = DateOnly.MinValue;
-        public DateOnly CreatedDateSearchMax { get; set; } = DateOnly.MinValue;
+        public DateTimeOffset CreatedDateSearchMin { get; set; } = DateTimeOffset.MinValue;
+        public DateTimeOffset CreatedDateSearchMax { get; set; } = DateTimeOffset.MaxValue;
 
         public string OrderedProperty { get; set; } = OrderPropertiesConstants.CreatedAt;
         public string SortDirection { get; set; } = OrderPropertiesConstants.DescOrder;

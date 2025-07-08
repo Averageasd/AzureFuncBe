@@ -1,5 +1,6 @@
 ﻿using AzureFuncBe.ContainerManager;
 using AzureFuncBe.Models;
+using AzureFuncBe.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
@@ -14,18 +15,19 @@ namespace AzureFuncBe.Controllers
         private readonly DBContainerManager _dbContainerManager;
         private readonly IConfiguration _configuration;
         private string _uploadMulitiFolderPath;
-        public LocalController(DBContainerManager dBContainerManager, IConfiguration configuration)
+        private GenerateNewDateUtil _generateNewDateUtil;
+        public LocalController(DBContainerManager dBContainerManager, IConfiguration configuration, GenerateNewDateUtil generateNewDateUtil)
         {
             _dbContainerManager = dBContainerManager;
             _configuration = configuration;
             _uploadMulitiFolderPath = _configuration["TestUploadMultipleFoldersPath"]!;
+            _generateNewDateUtil = generateNewDateUtil;
         }
         [Function("UploadMultiFilesTest")]
         public async Task<IActionResult> LocalTestUploadMultipleFiles(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "LocalController/TestPostMultiFiles")]
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "LocalController/TestPostMultiFiles/User/{userId}")]
             HttpRequest req,
-        string userId,
-            string folderId
+            string userId
         )
         {
             try
@@ -37,6 +39,8 @@ namespace AzureFuncBe.Controllers
                 foreach (FolderModel item in folders!)
                 {
                     item.Id = Guid.NewGuid().ToString();
+                    item.UserId = userId;
+                    item.CreatedDate = GenerateNewDateUtil.GenerateNewDate(DateTimeOffset.Now);
                     tasks.Add(container.CreateItemAsync(item, new PartitionKey(item.UserId))
                         .ContinueWith(itemResponse =>
                         {

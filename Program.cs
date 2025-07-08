@@ -1,5 +1,6 @@
 using AzureFuncBe.ContainerManager;
 using AzureFuncBe.Services;
+using AzureFuncBe.Utils;
 using AzureFuncBe.Validations;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
@@ -25,7 +26,8 @@ var host = new HostBuilder()
 
         var cosmosClientOptions = new CosmosClientOptions
         {
-            AllowBulkExecution = true
+            AllowBulkExecution = true,
+            MaxRetryAttemptsOnRateLimitedRequests = 10
         };
         services.AddSingleton<CosmosClient>(s =>
         {
@@ -39,6 +41,7 @@ var host = new HostBuilder()
         services.AddScoped<FlashcardService>();
         services.AddScoped<JWTTokenDecoder>();
         services.AddScoped<UserValidation>();
+        services.AddScoped<GenerateNewDateUtil>();
     })
     .Build();
 
