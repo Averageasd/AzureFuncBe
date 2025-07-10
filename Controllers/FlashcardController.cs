@@ -3,6 +3,7 @@ using AzureFuncBe.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+using System.Globalization;
 
 namespace AzureFuncBe.Controllers
 {
@@ -177,12 +178,22 @@ namespace AzureFuncBe.Controllers
 
                 if (!string.IsNullOrEmpty(createdDateSearchMin))
                 {
-                    paginatedFlashcardSearchDTO.CreatedDateSearchMin = createdDateSearchMin + "+00:00";
+                    paginatedFlashcardSearchDTO.CreatedDateSearchMin = DateTime.ParseExact(
+                        createdDateSearchMin,
+                        "yyyy-MM-ddTHH:mm:ssZ",
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.AdjustToUniversal
+                    );
                 }
 
                 if (!string.IsNullOrEmpty(createdDateSearchMax))
                 {
-                    paginatedFlashcardSearchDTO.CreatedDateSearchMax = createdDateSearchMax + "+00:00";
+                    paginatedFlashcardSearchDTO.CreatedDateSearchMax = DateTime.ParseExact(
+                        createdDateSearchMax,
+                        "yyyy-MM-ddTHH:mm:ssZ",
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.AdjustToUniversal
+                    );
                 }
 
                 var paginatedFlashcards = await _flashcardService.GetFlashcardsAsync(folderId, paginatedFlashcardSearchDTO);

@@ -40,7 +40,7 @@ namespace AzureFuncBe.Controllers
                 {
                     item.Id = Guid.NewGuid().ToString();
                     item.UserId = userId;
-                    item.CreatedDate = GenerateNewDateUtil.GenerateNewDate(DateTimeOffset.Now);
+                    item.CreatedDate = DateTimeOffset.UtcNow.DateTime;
                     tasks.Add(container.CreateItemAsync(item, new PartitionKey(item.UserId))
                         .ContinueWith(itemResponse =>
                         {

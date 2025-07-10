@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 
 namespace AzureFuncBe.Controllers
 {
@@ -68,11 +69,19 @@ namespace AzureFuncBe.Controllers
                 };
                 if (!string.IsNullOrEmpty(dateSearchMin) && DateTimeOffset.TryParse(dateSearchMin, out var createdDateSearchMin))
                 {
-                    paginatedFoldersSearchDTO.CreatedDateSearchMin = createdDateSearchMin;
+                    paginatedFoldersSearchDTO.CreatedDateSearchMin = DateTime.ParseExact(
+                        dateSearchMin,
+                        "yyyy-MM-ddTHH:mm:ssZ",
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.AdjustToUniversal);
                 }
                 if (!string.IsNullOrEmpty(dateSearchMax) && DateTimeOffset.TryParse(dateSearchMax, out var createdDateSearchMax))
                 {
-                    paginatedFoldersSearchDTO.CreatedDateSearchMax = createdDateSearchMax;
+                    paginatedFoldersSearchDTO.CreatedDateSearchMax = DateTime.ParseExact(
+                        dateSearchMax,
+                        "yyyy-MM-ddTHH:mm:ssZ",
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.AdjustToUniversal);
                 }
                 if (!string.IsNullOrEmpty(isFavoriteString) && int.TryParse(isFavoriteString, out var isFavoriteInt))
                 {

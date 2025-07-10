@@ -22,6 +22,6 @@ namespace AzureFuncBe.Models
         public string? CreatedBy { get; set; }
 
         [JsonProperty("createdAt")]
-        public string? CreatedDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
     }
 }

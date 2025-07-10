@@ -31,6 +31,6 @@ namespace AzureFuncBe.Models
         [JsonProperty("proficiency")]
         public string? Proficiency { get; set; } = ProficiencyConstants.NOT_LEARN;
         [JsonProperty("createdAt")]
-        public string? CreatedDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
     }
 }

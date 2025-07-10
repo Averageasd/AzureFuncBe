@@ -86,7 +86,7 @@ namespace AzureFuncBe.Services
                 FolderDescription = createFolderRequestDTO.FolderDescription,
                 IsFavorite = createFolderRequestDTO.IsFavorite,
                 CreatedBy = userId,
-                CreatedDate = GenerateNewDateUtil.GenerateNewDate(DateTimeOffset.Now)
+                CreatedDate = DateTimeOffset.UtcNow.DateTime
             };
             try
             {

@@ -41,7 +41,7 @@ namespace AzureFuncBe.Services
                 Tags = createNewCardRequestDTO.Tags,
                 StudyTimes = 0,
                 Proficiency = ProficiencyConstants.NOT_LEARN,
-                CreatedDate = GenerateNewDateUtil.GenerateNewDate(DateTimeOffset.Now)
+                CreatedDate = DateTimeOffset.UtcNow.UtcDateTime
             };
 
             try
@@ -141,7 +141,7 @@ namespace AzureFuncBe.Services
                     "fc.createdAt " +
                     "FROM Flashcard fc WHERE fc.folderId = @folderId";
 
-                query += " AND fc.cardFront LIKE @cardFrontBackTextSearch OR fc.cardBack LIKE @cardFrontBackTextSearch";
+                query += " AND (fc.cardFront LIKE @cardFrontBackTextSearch OR fc.cardBack LIKE @cardFrontBackTextSearch)";
                 query += " AND EXISTS (SELECT VALUE t FROM t IN fc.cardTags WHERE CONTAINS(t, @tagSearch, true))";
 
 
@@ -183,15 +183,20 @@ namespace AzureFuncBe.Services
                     query += ", fc.createdAt DESC";
                 }
                 
-
+                
                 var queryDefinition = new QueryDefinition(query)
                     .WithParameter("@folderId", folderId)
                     .WithParameter("@cardFrontBackTextSearch", $"{paginatedFlashcardSearchDTO.CardFrontBackTextSearch}%")
                     .WithParameter("@tagSearch",$"{paginatedFlashcardSearchDTO.TagSearch}")
                     .WithParameter("@isFavorite", paginatedFlashcardSearchDTO.IsFavorite)
                     .WithParameter("@proficiency", $"{paginatedFlashcardSearchDTO.Proficiency}")
-                    .WithParameter("@createdDateSearchMin", paginatedFlashcardSearchDTO.CreatedDateSearchMin)
-                    .WithParameter("@createdDateSearchMax", paginatedFlashcardSearchDTO.CreatedDateSearchMax);
+                    .WithParameter("@createdDateSearchMin",
+                        paginatedFlashcardSearchDTO.CreatedDateSearchMin!.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))
+                    .WithParameter("@createdDateSearchMax",
+                        paginatedFlashcardSearchDTO.CreatedDateSearchMax!.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"));
+                Console.WriteLine("Query: " + query);
+                foreach (var p in queryDefinition.GetQueryParameters())
+                    Console.WriteLine($"{p.Name}: {p.Value}");
 
                 using (FeedIterator<SingleFlashcardResponseDTO> setIterator = container.GetItemQueryIterator<SingleFlashcardResponseDTO>(
                 queryDefinition,

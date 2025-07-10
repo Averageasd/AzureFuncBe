@@ -23,7 +23,7 @@ namespace AzureFuncBe.DTOs.FlashcardDTOs
 
         public string? SortDirection { get; set; } = FlashCardSearchOrderProperties.DescOrder;
 
-        public string CreatedDateSearchMin { get; set; } = GenerateNewDateUtil.GenerateNewDate(DateTimeOffset.MinValue);
-        public string CreatedDateSearchMax { get; set; } = GenerateNewDateUtil.GenerateNewDate(DateTimeOffset.MaxValue);
+        public DateTime? CreatedDateSearchMin { get; set; } = DateTimeOffset.MinValue.UtcDateTime;
+        public DateTime? CreatedDateSearchMax { get; set; } = DateTimeOffset.MaxValue.UtcDateTime;
     }
 }

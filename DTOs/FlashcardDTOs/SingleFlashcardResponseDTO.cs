@@ -24,6 +24,6 @@ namespace AzureFuncBe.DTOs.FlashcardDTOs
         [JsonProperty("proficiency")]
         public string? Proficiency { get; set; }
         [JsonProperty("createdAt")]
-        public string? CreatedDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
     }
 }
