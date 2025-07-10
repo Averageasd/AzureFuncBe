@@ -21,7 +21,7 @@ namespace AzureFuncBe.Controllers
 
         [Function("GetSingleFolder")]
         public async Task<IActionResult> GetSingleFolder(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "User/{userId}/Folder/{folderId}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "User/{userId}/Folder/{folderId}")]
             HttpRequest req,
             string userId,
             string folderId
@@ -44,7 +44,7 @@ namespace AzureFuncBe.Controllers
 
         [Function("GetPaginatedFolders")]
         public async Task<IActionResult> GetPaginatedFolders(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "User/{userId}/Folder")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "User/{userId}/Folder")]
             HttpRequest req,
             string userId
          )
@@ -102,7 +102,7 @@ namespace AzureFuncBe.Controllers
         }
         [Function("CreateNewFolder")]
         public async Task<IActionResult> CreateFolder(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "User/{userId}/Folder")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "User/{userId}/Folder")]
             HttpRequest req,
             string userId
         )
@@ -121,7 +121,7 @@ namespace AzureFuncBe.Controllers
 
         [Function("UpdateFolder")]
         public async Task<IActionResult> UpdateFolder(
-            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "User/{userId}/Folder/{folderId}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "User/{userId}/Folder/{folderId}")]
             HttpRequest req,
             string userId,
             string folderId
@@ -141,7 +141,7 @@ namespace AzureFuncBe.Controllers
 
         [Function("DeleteFolder")]
         public async Task<IActionResult> DeleteFolder(
-             [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "User/{userId}/Folder/{folderId}")]
+             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "User/{userId}/Folder/{folderId}")]
              HttpRequest req,
             string userId,
             string folderId

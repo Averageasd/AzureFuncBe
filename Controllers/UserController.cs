@@ -27,7 +27,7 @@ namespace AzureFuncBe.Controllers
         }
         [Function("Auth")]
         public async Task<IActionResult> Auth(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "Userl/Login")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "Userl/Login")]
         HttpRequest req)
         {
             if (!_userValidation.AuthHeaderExists(req))
@@ -48,7 +48,7 @@ namespace AzureFuncBe.Controllers
 
         [Function("GetUserProfile")]
         public async Task<IActionResult> GetUserProfile(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "User/Profile/{userId}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "User/Profile/{userId}")]
             HttpRequest req,
             string userId
             )

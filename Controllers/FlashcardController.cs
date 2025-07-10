@@ -21,7 +21,7 @@ namespace AzureFuncBe.Controllers
         [Function("CreateFlashCard")]
 
         public async Task<IActionResult> CreateFlashCard(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "User/{userId}/Folder/{folderId}/Flashcard")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "User/{userId}/Folder/{folderId}/Flashcard")]
              HttpRequest req,
              string userId,
              string folderId
@@ -50,7 +50,7 @@ namespace AzureFuncBe.Controllers
 
         [Function("GetSingleFlashcard")]
         public async Task<IActionResult> GetFlashCardById(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "User/{userId}/Folder/{folderId}/Flashcard/{flashcardId}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "User/{userId}/Folder/{folderId}/Flashcard/{flashcardId}")]
             string userId,
             string folderId,
             string flashcardId
@@ -76,7 +76,7 @@ namespace AzureFuncBe.Controllers
 
         [Function("UpdateFlashCard")]
         public async Task<IActionResult> UpdateFlashCard(
-         [HttpTrigger(AuthorizationLevel.Function, "put", Route = "User/{userId}/Folder/{folderId}/Flashcard/{flashcardId}")]
+         [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "User/{userId}/Folder/{folderId}/Flashcard/{flashcardId}")]
              HttpRequest req,
              string userId,
              string folderId,
@@ -104,7 +104,7 @@ namespace AzureFuncBe.Controllers
 
         [Function("DeleteFlashCard")]
         public async Task<IActionResult> DeleteFlashCard(
-         [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "User/{userId}/Folder/{folderId}/Flashcard/{flashcardId}")]
+         [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "User/{userId}/Folder/{folderId}/Flashcard/{flashcardId}")]
              string userId,
              string folderId,
              string flashcardId
@@ -130,7 +130,7 @@ namespace AzureFuncBe.Controllers
 
         [Function("GetPaginatedFlashcards")]
         public async Task<IActionResult> GetPaginatedFlashcards(
-         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "User/{userId}/Folder/{folderId}/Flashcard")]
+         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "User/{userId}/Folder/{folderId}/Flashcard")]
              HttpRequest req,
              string userId,
              string folderId
