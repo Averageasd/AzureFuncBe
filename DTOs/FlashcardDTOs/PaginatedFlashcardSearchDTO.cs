@@ -1,6 +1,4 @@
-﻿using AzureFuncBe.Utils;
-
-namespace AzureFuncBe.DTOs.FlashcardDTOs
+﻿namespace AzureFuncBe.DTOs.FlashcardDTOs
 {
     public class FlashCardSearchOrderProperties
     {

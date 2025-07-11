@@ -1,12 +1,12 @@
 ﻿using AzureFuncBe.ContainerManager;
 using AzureFuncBe.Models;
-using AzureFuncBe.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
+using System.Text.Json;
+//using Newtonsoft.Json;
 
 namespace AzureFuncBe.Controllers
 {
@@ -15,13 +15,11 @@ namespace AzureFuncBe.Controllers
         private readonly DBContainerManager _dbContainerManager;
         private readonly IConfiguration _configuration;
         private string _uploadMulitiFolderPath;
-        private GenerateNewDateUtil _generateNewDateUtil;
-        public LocalController(DBContainerManager dBContainerManager, IConfiguration configuration, GenerateNewDateUtil generateNewDateUtil)
+        public LocalController(DBContainerManager dBContainerManager, IConfiguration configuration)
         {
             _dbContainerManager = dBContainerManager;
             _configuration = configuration;
             _uploadMulitiFolderPath = _configuration["TestUploadMultipleFoldersPath"]!;
-            _generateNewDateUtil = generateNewDateUtil;
         }
         [Function("UploadMultiFilesTest")]
         public async Task<IActionResult> LocalTestUploadMultipleFiles(
@@ -32,8 +30,9 @@ namespace AzureFuncBe.Controllers
         {
             try
             {
-                string jsonString = File.ReadAllText(_uploadMulitiFolderPath);
-                List<FolderModel> folders = JsonConvert.DeserializeObject<List<FolderModel>>(jsonString);
+                //string jsonString = File.ReadAllText(_uploadMulitiFolderPath);
+                using var stream = File.OpenRead(_uploadMulitiFolderPath);
+                List<FolderModel> folders = await JsonSerializer.DeserializeAsync<List<FolderModel>>(stream);
                 Container container = _dbContainerManager.GetContainer(_dbContainerManager.GetFolderContainerName());
                 List<Task> tasks = new List<Task>();
                 foreach (FolderModel item in folders!)

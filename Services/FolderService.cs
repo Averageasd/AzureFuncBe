@@ -1,7 +1,6 @@
 ﻿using AzureFuncBe.ContainerManager;
 using AzureFuncBe.DTOs.FolderDTOs;
 using AzureFuncBe.Models;
-using AzureFuncBe.Utils;
 using Microsoft.Azure.Cosmos;
 
 namespace AzureFuncBe.Services
@@ -227,8 +226,8 @@ namespace AzureFuncBe.Services
                    .WithParameter("@folderNameSearch", $"{paginatedFoldersSearchDTO.FolderNameSearch}%")
                    .WithParameter("@folderIsFavorite", paginatedFoldersSearchDTO.FolderIsFavorite)
                    .WithParameter("@createdByUserNameSearch", $"{paginatedFoldersSearchDTO.CreatedByUsernameSearch}%")
-                   .WithParameter("@createdDateSearchMin", paginatedFoldersSearchDTO.CreatedDateSearchMin)
-                   .WithParameter("@createdDateSearchMax", paginatedFoldersSearchDTO.CreatedDateSearchMax);
+                   .WithParameter("@createdDateSearchMin", paginatedFoldersSearchDTO.CreatedDateSearchMin.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))
+                   .WithParameter("@createdDateSearchMax", paginatedFoldersSearchDTO.CreatedDateSearchMax.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"));
                 var container = _dBContainerManager.GetContainer(_dBContainerManager.GetFolderContainerName());
                 using (FeedIterator<SingleFolderResponseDTO> setIterator = container.GetItemQueryIterator<SingleFolderResponseDTO>(
                     queryDefinition,

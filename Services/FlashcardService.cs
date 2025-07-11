@@ -1,8 +1,12 @@
-﻿using AzureFuncBe.ContainerManager;
+﻿using Azure.Storage.Queues;
+using AzureFuncBe.ContainerManager;
 using AzureFuncBe.DTOs.FlashcardDTOs;
 using AzureFuncBe.Models;
-using AzureFuncBe.Utils;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Cosmos;
+using System.Collections;
+using System.IO;
+using System.Text;
 
 namespace AzureFuncBe.Services
 {
@@ -11,14 +15,19 @@ namespace AzureFuncBe.Services
     public class FlashcardService
     {
         private DBContainerManager _dBContainerManager;
+        private QueueStorageManager _queueStorageManager;
+        private BlobContainerManager _blobContainerManager;
 
         public FlashcardService
         (
-            DBContainerManager dBContainerManager
+            DBContainerManager dBContainerManager,
+            QueueStorageManager queueStorageManager,
+            BlobContainerManager blobContainerManager
         )
         {
             _dBContainerManager = dBContainerManager;
-
+            _queueStorageManager = queueStorageManager;
+            _blobContainerManager = blobContainerManager;
 
         }
 
@@ -222,6 +231,35 @@ namespace AzureFuncBe.Services
             {
                 throw;
             }
+        }
+
+        public async Task EnqueueBulkInsertMessage(string userId, IFormFile fcBulkInsertFile)
+        {
+            QueueClient queue = await _queueStorageManager.GetQueueWithName(AppConstants.FC_BULK_INSERT_QUEUE);
+            //if (await queue.ExistsAsync())
+            //{
+            //    var bytes = Encoding.UTF8.GetBytes(message);
+            //    await queue.SendMessageAsync(
+            //        Convert.ToBase64String(bytes),
+            //        timeToLive: TimeSpan.FromDays(1),      
+            //        visibilityTimeout: TimeSpan.FromSeconds(0)
+            //        );
+            //}
+            if (fcBulkInsertFile.Length > 0)
+            {
+                using (var inputStream = new FileStream(fcBulkInsertFile.FileName, FileMode.Create))
+                {
+                    await fcBulkInsertFile.CopyToAsync(inputStream);
+                    byte[] array = new byte[inputStream.Length];
+                    inputStream.Seek(0, SeekOrigin.Begin);
+                    inputStream.Read(array, 0, array.Length);
+                    var containerClient = await _blobContainerManager.GetContainerWithName(AppConstants.FC_TEMP_BLOB_STORAGE);
+                    var blobClient = containerClient.GetBlobClient($"{userId}-{fcBulkInsertFile.FileName}");
+                    using var stream = new MemoryStream(array);
+                    await blobClient.UploadAsync(stream, overwrite: true);
+                }
+            }
+            
         }
     }
 }

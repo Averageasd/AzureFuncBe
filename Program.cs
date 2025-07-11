@@ -1,6 +1,6 @@
+using Azure.Storage.Blobs;
 using AzureFuncBe.ContainerManager;
 using AzureFuncBe.Services;
-using AzureFuncBe.Utils;
 using AzureFuncBe.Validations;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +23,9 @@ var host = new HostBuilder()
 
         string accountEndpoint = configuration["CosmosDbConnection"]
                                ?? throw new InvalidOperationException("CosmosDbConnection environment variable is not set.");
+        string fcBlobEndpoint = configuration["AzureBlobStorageConnection"]
+                                ?? throw new InvalidOperationException
+                                ("AzureBlobStorageConnection environment variable is not set.");
 
         var cosmosClientOptions = new CosmosClientOptions
         {
@@ -35,13 +38,19 @@ var host = new HostBuilder()
             return client;
         });
 
+        services.AddSingleton<BlobServiceClient>(s =>
+        {
+            return new BlobServiceClient(fcBlobEndpoint);
+        });
+
         services.AddScoped<DBContainerManager>();
         services.AddScoped<UserService>();
         services.AddScoped<FolderService>();
         services.AddScoped<FlashcardService>();
         services.AddScoped<JWTTokenDecoder>();
         services.AddScoped<UserValidation>();
-        services.AddScoped<GenerateNewDateUtil>();
+        services.AddScoped<QueueStorageManager>();
+        services.AddScoped<BlobContainerManager>();
     })
     .Build();
 

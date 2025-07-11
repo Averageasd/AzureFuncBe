@@ -1,9 +1,17 @@
-﻿using AzureFuncBe.DTOs.FlashcardDTOs;
+﻿using AzureFuncBe.ContainerManager;
+using AzureFuncBe.DTOs.FlashcardDTOs;
 using AzureFuncBe.Services;
+using HttpMultipartParser;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
+using System.Collections;
 using System.Globalization;
+using System.Net;
+using System.Text;
 
 namespace AzureFuncBe.Controllers
 {
@@ -205,6 +213,20 @@ namespace AzureFuncBe.Controllers
             {
                 return new StatusCodeResult(500);
             }
+        }
+
+        [Function("BulkInsertFlashcards")]
+        public async Task<IActionResult> BulkCardInsertAsync(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "User/{userId}/Folder/{folderId}/BulkInsert/Flashcard")]
+             HttpRequest req,
+             string userId,
+             string folderId
+        ) {
+            var form = await req.ReadFormAsync();
+            var file = form.Files.FirstOrDefault();
+
+            await _flashcardService.EnqueueBulkInsertMessage(userId, file);
+            return new OkResult();
         }
     }
 }
